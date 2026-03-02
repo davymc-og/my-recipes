@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>My Recipe Box</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -31,6 +31,8 @@
         body {
             font-family: 'Inter', sans-serif;
             transition: background-color 0.3s ease, color 0.3s ease;
+            /* Support for iPhone notch/home bar */
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
         .sage-bg { background-color: #87a96b; }
@@ -77,6 +79,11 @@
         .recipe-card-img {
             height: 160px;
             object-fit: cover;
+        }
+
+        /* Ensure the close button is always visible on mobile browsers with dynamic bars */
+        .safe-top-button {
+            top: calc(1rem + env(safe-area-inset-top));
         }
     </style>
 </head>
@@ -130,8 +137,8 @@
         <div class="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm" onclick="closeModal()"></div>
         <div class="absolute bottom-0 sm:top-10 sm:bottom-auto sm:left-1/2 sm:-translate-x-1/2 w-full max-w-2xl bg-white dark:bg-[#1a1a1a] rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
             <div id="modalContent" class="relative">
-                <button onclick="closeModal()" class="absolute right-4 top-4 p-2 bg-white/80 dark:bg-black/50 backdrop-blur shadow-sm rounded-full z-10 hover:bg-white dark:hover:bg-black transition-colors">
-                    <svg class="w-6 h-6 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button onclick="closeModal()" class="absolute right-4 safe-top-button p-2 bg-white/90 dark:bg-black/60 backdrop-blur shadow-sm rounded-full z-20 hover:bg-white dark:hover:bg-black transition-colors">
+                    <svg class="w-6 h-6 text-gray-600 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 <div id="modalInner"></div>
             </div>
@@ -173,7 +180,6 @@
 
         async function fetchData() {
             try {
-                // Check for common URL mistake
                 if (dataSourceUrl.includes('gist.github.com') && !dataSourceUrl.includes('gist.githubusercontent.com')) {
                     throw new Error("Invalid Gist URL. You must click the 'Raw' button on GitHub and use that specific URL.");
                 }
@@ -190,7 +196,6 @@
                     throw new Error("The file is not a valid JSON. Check for missing commas or quotes in your Gist.");
                 }
                 
-                // CRITICAL: Ensure the data is a list [{}, {}]
                 if (!Array.isArray(jsonData)) {
                     throw new Error("Your JSON must be a LIST (starting with [ and ending with ]). Currently it is a single object.");
                 }
@@ -282,7 +287,7 @@
                     const card = `
                         <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow cursor-pointer" 
                              onclick="openRecipe(${recipe.id})">
-                            ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" class="w-full recipe-card-img" alt="${recipe.title}">` : `<div class="w-full h-32 bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-200 dark:text-gray-700"><svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg></div>`}
+                            ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" class="w-full recipe-card-img" alt="${recipe.title}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1495195129352-aeb325a55b65?w=800';">` : `<div class="w-full h-32 bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-200 dark:text-gray-700"><svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg></div>`}
                             <div class="p-5">
                                 <span class="text-[10px] font-bold uppercase tracking-widest sage-text mb-1 block">${recipe.category || 'General'}</span>
                                 <h3 class="text-lg font-semibold mb-2 dark:text-white">${recipe.title || 'Untitled Recipe'}</h3>
@@ -307,7 +312,7 @@
             const modalInner = document.getElementById('modalInner');
             
             modalInner.innerHTML = `
-                ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" class="w-full h-64 object-cover" alt="${recipe.title}">` : ''}
+                ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" class="w-full h-64 object-cover" alt="${recipe.title}" onerror="this.style.display='none'">` : ''}
                 <div class="p-6 sm:p-10">
                     <span class="text-xs font-bold uppercase tracking-widest sage-text mb-2 block">${recipe.category || 'General'}</span>
                     <h2 class="text-3xl font-bold mb-4 pr-8 dark:text-white">${recipe.title || 'Untitled Recipe'}</h2>
